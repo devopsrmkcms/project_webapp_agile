@@ -5,43 +5,22 @@ pool:
   vmImage: ubuntu-latest
 
 variables:
-  DOCKER_HUB_USERNAME: 'rmk1988'
-  imageName: 'rmk1988/mywebapp'
+  imageName: 'rmk1988/httpd-webapp'
   tag: '$(Build.BuildId)'
 
-stages:
-- stage: Build
-  jobs:
-  - job: BuildAndPush
-    steps:
-    - task: Docker@2
-      displayName: 'Docker Hub Login'
-      inputs:
-        command: 'login'
-        containerRegistry: 'dockerhub-service-connection'
+steps:
+- task: Docker@2
+  displayName: '🚀 Login to Docker Hub'
+  inputs:
+    command: 'login'
+    containerRegistry: 'dockerhub-service-connection'
 
-    - task: Docker@2
-      displayName: 'Build and Push'
-      inputs:
-        command: 'buildAndPush'
-        repository: $(imageName)
-        dockerfile: 'Dockerfile'
-        tags: |
-          $(tag)
-          latest
-
-- stage: Deploy
-  dependsOn: Build
-  jobs:
-  - deployment: DeployWebApp
-    environment: 'test'
-    strategy:
-      runOnce:
-        deploy:
-          steps:
-          - task: AzureWebAppContainer@1
-            displayName: 'Deploy to Azure Web App'
-            inputs:
-              azureSubscription: 'Azure subscription 1 (0fdd7122-3105-4287-b900-df212ee1e24f)'
-              appName: 'webappagile'
-              imageName: '$(imageName):latest'
+- task: Docker@2
+  displayName: '🏗️ Build & Push HTTPD Image'
+  inputs:
+    command: 'buildAndPush'
+    repository: $(imageName)
+    dockerfile: 'Dockerfile'
+    tags: |
+      $(tag)
+      latest
